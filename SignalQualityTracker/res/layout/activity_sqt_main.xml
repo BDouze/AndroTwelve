@@ -12,7 +12,43 @@
         android:layout_alignParentTop="true"
         android:layout_marginLeft="16dp"
         android:layout_marginTop="16dp"
-        android:text="-"
+        android:text="@string/nvl"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <TextView
+        android:id="@+id/textViewSQV2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textViewSQV"
+        android:layout_below="@+id/textViewSQV"
+        android:text="@string/nvl"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <TextView
+        android:id="@+id/textViewSQV3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textViewSQV2"
+        android:layout_below="@+id/textViewSQV2"
+        android:text="@string/nvl"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <TextView
+        android:id="@+id/textViewSQV4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textViewSQV3"
+        android:layout_below="@+id/textViewSQV3"
+        android:text="@string/nvl"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <TextView
+        android:id="@+id/textViewSQV5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/textViewSQV4"
+        android:layout_below="@+id/textViewSQV4"
+        android:text="@string/nvl"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
 </RelativeLayout>
