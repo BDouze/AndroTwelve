@@ -12,6 +12,7 @@ import android.telephony.gsm.GsmCellLocation;
 import android.view.Menu;
 import android.widget.TextView;
 
+
 public class SqtMainActivity extends Activity {
 
     private static final double[] BER_ASSUMED_VALUES_NUM = { 0.14, 0.28, 0.57,
@@ -23,16 +24,19 @@ public class SqtMainActivity extends Activity {
                                                          "2.26", "4.53",
                                                          "9.05", "18.10" };
 
-    private PhoneStateListener    phoneStateListener = null;
+    private PhoneStateListener    phoneStateListener     = null;
 
-    private TextView              textViewSQV = null;
-    private TextView              textViewSQV2 = null;
-    private TextView              textViewSQV3 = null;
-    private TextView              textViewSQV4 = null;
-    private TextView              textViewSQV5 = null;
+    private TextView              textViewSQV            = null;
+    private TextView              textViewSQV2           = null;
+    private TextView              textViewSQV3           = null;
+    private TextView              textViewSQV4           = null;
+    private TextView              textViewSQV5           = null;
+    private TextView              textViewSQV6           = null;
 
-    private String                mcc = null;
-    private String                mnc = null;
+    private String                mcc                    = null;
+    private String                mnc                    = null;
+
+    private OpenCellIdCellLocator currentCellLocator     = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +48,7 @@ public class SqtMainActivity extends Activity {
         textViewSQV3 = (TextView) this.findViewById(R.id.textViewSQV3);
         textViewSQV4 = (TextView) this.findViewById(R.id.textViewSQV4);
         textViewSQV5 = (TextView) this.findViewById(R.id.textViewSQV5);
+        textViewSQV6 = (TextView) this.findViewById(R.id.textViewSQV6);
 
         // Create a listener to receive phone state changes
         phoneStateListener = new PhoneStateListener() {
@@ -345,14 +350,43 @@ public class SqtMainActivity extends Activity {
 
         if (location instanceof GsmCellLocation) {
             GsmCellLocation gsmLocation = (GsmCellLocation) location;
+            int cid = gsmLocation.getCid();
+            int lac = gsmLocation.getLac();
+
             sb.append("CID=");
-            sb.append(gsmLocation.getCid());
+            sb.append(cid);
             sb.append(", LAC=");
-            sb.append(gsmLocation.getLac());
+            sb.append(lac);
+
+            locateCell(cid, lac);
         } else {
             sb.append(getString(R.string.msg_cell_not_gsm));
         }
         textViewSQV2.setText(sb.toString());
+    }
+
+    private void locateCell(int cid, int lac) {
+        
+        if (null != currentCellLocator) {
+            currentCellLocator.cancel(true);
+            currentCellLocator = null;
+        }
+
+        if (null == currentCellLocator) {
+            currentCellLocator = new OpenCellIdCellLocator() {
+                public void cellLocated(String location) {
+                    currentCellLocator = null;
+                    textViewSQV6.setText(getString(R.string.msg_cell_location) + " "
+                            + location);
+                }
+            };
+
+            CellInfo cellInfo = new CellInfo(Integer.valueOf(mcc),
+                    Integer.valueOf(mnc), lac, cid);
+
+            textViewSQV6.setText("...");
+            currentCellLocator.execute(cellInfo);
+        }
     }
 
     @Override

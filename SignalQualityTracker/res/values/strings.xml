@@ -17,6 +17,8 @@
     
     <string name="msg_cell">Cell :</string>    
     <string name="msg_cell_not_gsm">Not a GSM cell</string>    
+    <string name="msg_cell_location">Cell location :</string>    
+    
     <string name="msg_data">Data :</string>    
     <string name="msg_data_disconnected">Disconnected</string>    
     <string name="msg_data_connecting">Connecting</string>    
