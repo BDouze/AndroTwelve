@@ -1,14 +1,16 @@
 package org.bdouze.android.signalqualitytracker;
 
 public class CellInfo {
-    private int    mobileCountryCode;
-    private int    mobileNetworkCode;
-    private int    localAreaCode;
-    private int    cellId;
-    private double latitude;
-    private double longitude;
-    private double range;
-    private int    sampleCount;
+    private int    mobileCountryCode = 0;
+    private int    mobileNetworkCode = 0;
+    private int    localAreaCode     = 0;
+    private int    cellId            = 0;
+    private int    networkType       = 0;
+    private int    signalStrength    = 0;
+    private double latitude          = 0;
+    private double longitude         = 0;
+    private double range             = 0;
+    private int    sampleCount       = 0;
 
     public int getMobileCountryCode() {
         return mobileCountryCode;
@@ -58,6 +60,14 @@ public class CellInfo {
         this.longitude = longitude;
     }
 
+    public int getNetworkType() {
+        return networkType;
+    }
+
+    public void setNetworkType(int networkType) {
+        this.networkType = networkType;
+    }
+
     public double getRange() {
         return range;
     }
@@ -74,6 +84,14 @@ public class CellInfo {
         this.sampleCount = sampleCount;
     }
 
+    public int getSignalStrength() {
+        return signalStrength;
+    }
+
+    public void setSignalStrength(int signalStrength) {
+        this.signalStrength = signalStrength;
+    }
+
     public CellInfo(int mobileCountryCode, int mobileNetworkCode,
             int localAreaCode, int cellId) {
         super();
@@ -81,5 +99,9 @@ public class CellInfo {
         this.mobileNetworkCode = mobileNetworkCode;
         this.localAreaCode = localAreaCode;
         this.cellId = cellId;
-    }    
+    }
+
+    public CellInfo() {
+        super();
+    }
 }

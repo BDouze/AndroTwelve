@@ -1,5 +1,9 @@
 package org.bdouze.android.signalqualitytracker;
 
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Context;
@@ -11,7 +15,6 @@ import android.telephony.TelephonyManager;
 import android.telephony.gsm.GsmCellLocation;
 import android.view.Menu;
 import android.widget.TextView;
-
 
 public class SqtMainActivity extends Activity {
 
@@ -25,6 +28,7 @@ public class SqtMainActivity extends Activity {
                                                          "9.05", "18.10" };
 
     private PhoneStateListener    phoneStateListener     = null;
+    private LocationListener      locationListener       = null;
 
     private TextView              textViewSQV            = null;
     private TextView              textViewSQV2           = null;
@@ -32,9 +36,9 @@ public class SqtMainActivity extends Activity {
     private TextView              textViewSQV4           = null;
     private TextView              textViewSQV5           = null;
     private TextView              textViewSQV6           = null;
+    private TextView              textViewSQV7           = null;
 
-    private String                mcc                    = null;
-    private String                mnc                    = null;
+    private CellInfo              currentCellInfo        = null;
 
     private OpenCellIdCellLocator currentCellLocator     = null;
 
@@ -49,6 +53,7 @@ public class SqtMainActivity extends Activity {
         textViewSQV4 = (TextView) this.findViewById(R.id.textViewSQV4);
         textViewSQV5 = (TextView) this.findViewById(R.id.textViewSQV5);
         textViewSQV6 = (TextView) this.findViewById(R.id.textViewSQV6);
+        textViewSQV7 = (TextView) this.findViewById(R.id.textViewSQV7);
 
         // Create a listener to receive phone state changes
         phoneStateListener = new PhoneStateListener() {
@@ -69,7 +74,37 @@ public class SqtMainActivity extends Activity {
             }
         };
 
-        // Register the listener
+        // Create a listener to receive device location changes
+        locationListener = new LocationListener() {
+            public void onLocationChanged(Location location) {
+                deviceLocationChanged(location);
+
+            }
+
+            public void onProviderDisabled(String provider) {
+
+            }
+
+            public void onProviderEnabled(String provider) {
+
+            }
+
+            public void onStatusChanged(String provider,
+                    int status,
+                    Bundle extras) {
+
+            }
+        };
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        currentCellInfo = new CellInfo();
+
+        // Register the phone state listener
         TelephonyManager telephonyManager = (TelephonyManager) this
                 .getSystemService(Context.TELEPHONY_SERVICE);
 
@@ -79,6 +114,49 @@ public class SqtMainActivity extends Activity {
                         | PhoneStateListener.LISTEN_CELL_INFO
                         | PhoneStateListener.LISTEN_CELL_LOCATION
                         | PhoneStateListener.LISTEN_DATA_CONNECTION_STATE);
+
+        // Register the location listener
+        LocationManager locationManager = (LocationManager) this
+                .getSystemService(Context.LOCATION_SERVICE);
+
+        Criteria locationProviderCriteria = new Criteria();
+        locationProviderCriteria.setAccuracy(Criteria.ACCURACY_FINE);
+        locationProviderCriteria.setAltitudeRequired(true);
+        locationManager.requestLocationUpdates(5000, 0,
+                locationProviderCriteria, locationListener, null);
+
+    }
+
+    @Override
+    protected void onPause() {
+        // Unregister the location listener
+        LocationManager locationManager = (LocationManager) this
+                .getSystemService(Context.LOCATION_SERVICE);
+
+        locationManager.removeUpdates(locationListener);
+
+        // Unregister the phone state listener
+        TelephonyManager telephonyManager = (TelephonyManager) this
+                .getSystemService(Context.TELEPHONY_SERVICE);
+
+        telephonyManager.listen(phoneStateListener,
+                PhoneStateListener.LISTEN_NONE);
+
+        super.onPause();
+    }
+
+    private void deviceLocationChanged(Location location) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getString(R.string.msg_device_location));
+        sb.append(' ');
+        sb.append(location.getLatitude());
+        sb.append(',');
+        sb.append(location.getLongitude());
+        sb.append(" (");
+        sb.append(location.getAccuracy());
+        sb.append(" m)");
+
+        textViewSQV7.setText(sb.toString());
     }
 
     protected void dataConnectionStateChanged(int state) {
@@ -231,6 +309,8 @@ public class SqtMainActivity extends Activity {
             sb.append(getString(R.string.msg_unknown));
         }
         textViewSQV4.setText(sb.toString());
+
+        currentCellInfo.setSignalStrength(gsmStrength);
     }
 
     /**
@@ -249,8 +329,8 @@ public class SqtMainActivity extends Activity {
 
         String operator = serviceState.getOperatorAlphaShort();
         String operatorNum = serviceState.getOperatorNumeric();
-        mcc = operatorNum.substring(0, 3);
-        mnc = operatorNum.substring(3);
+        String mcc = operatorNum.substring(0, 3);
+        String mnc = operatorNum.substring(3);
 
         switch (serviceState.getState()) {
             case ServiceState.STATE_EMERGENCY_ONLY:
@@ -287,6 +367,15 @@ public class SqtMainActivity extends Activity {
                 // searching to registration at all, or registration is denied,
                 // or radio signal is not available.
                 sb.append(getString(R.string.msg_service_state_out_of_service));
+                if (null != operator) {
+                    sb.append(" (mcc=");
+                    sb.append(mcc);
+                    sb.append(", mnc=");
+                    sb.append(mnc);
+                    sb.append(": ");
+                    sb.append(operator);
+                    sb.append(")");
+                }
                 break;
             case ServiceState.STATE_POWER_OFF:
                 // Radio of telephony is explicitly powered off.
@@ -297,6 +386,14 @@ public class SqtMainActivity extends Activity {
         }
 
         textViewSQV.setText(sb.toString());
+
+        try {
+            currentCellInfo.setMobileCountryCode(Integer.valueOf(mcc));
+            currentCellInfo.setMobileNetworkCode(Integer.valueOf(mnc));
+        } catch (Exception e) {
+            currentCellInfo.setMobileCountryCode(0);
+            currentCellInfo.setMobileNetworkCode(0);
+        }
     }
 
     private String getNetworkTypeText(int type) {
@@ -344,6 +441,10 @@ public class SqtMainActivity extends Activity {
     }
 
     private void cellLocationChanged(CellLocation location) {
+        TelephonyManager telephonyManager = (TelephonyManager) this
+                .getSystemService(Context.TELEPHONY_SERVICE);
+        int networkType = telephonyManager.getNetworkType();
+
         StringBuilder sb = new StringBuilder();
         sb.append(getString(R.string.msg_cell));
         sb.append(' ');
@@ -358,15 +459,23 @@ public class SqtMainActivity extends Activity {
             sb.append(", LAC=");
             sb.append(lac);
 
-            locateCell(cid, lac);
+            if (null == currentCellInfo) {
+                currentCellInfo = new CellInfo();
+            }
+            currentCellInfo.setLocalAreaCode(lac);
+            currentCellInfo.setCellId(cid);
+            currentCellInfo.setNetworkType(networkType);
+            
+            locateCell(currentCellInfo);
         } else {
             sb.append(getString(R.string.msg_cell_not_gsm));
         }
         textViewSQV2.setText(sb.toString());
+
     }
 
-    private void locateCell(int cid, int lac) {
-        
+    private void locateCell(CellInfo cellInfo) {
+
         if (null != currentCellLocator) {
             currentCellLocator.cancel(true);
             currentCellLocator = null;
@@ -376,13 +485,11 @@ public class SqtMainActivity extends Activity {
             currentCellLocator = new OpenCellIdCellLocator() {
                 public void cellLocated(String location) {
                     currentCellLocator = null;
-                    textViewSQV6.setText(getString(R.string.msg_cell_location) + " "
+                    textViewSQV6.setText(getString(R.string.msg_cell_location)
+                            + " "
                             + location);
                 }
             };
-
-            CellInfo cellInfo = new CellInfo(Integer.valueOf(mcc),
-                    Integer.valueOf(mnc), lac, cid);
 
             textViewSQV6.setText("...");
             currentCellLocator.execute(cellInfo);
@@ -403,14 +510,6 @@ public class SqtMainActivity extends Activity {
 
     /*
      * @Override protected void onRestart() { super.onRestart(); }
-     */
-
-    /*
-     * @Override protected void onResume() { super.onResume(); }
-     */
-
-    /*
-     * @Override protected void onPause() { super.onPause(); }
      */
 
     /*
