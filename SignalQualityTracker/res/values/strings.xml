@@ -4,27 +4,27 @@
     <string name="app_name">Signal Quality Tracker</string>
     <string name="menu_settings">Settings</string>
     <string name="nvl">-</string>
-    
     <string name="msg_unknown">Unknown</string>
     <string name="msg_gsm_strenght">Signal Strength :</string>
     <string name="msg_gsm_error_rate">Bit Error Rate :</string>
-
     <string name="msg_service">Service :</string>
     <string name="msg_service_state_emergency_only">Emergency Only</string>
     <string name="msg_service_state_in_service">In Service</string>
     <string name="msg_service_state_out_of_service">No Service</string>
     <string name="msg_service_state_power_off">Powered Off</string>
-    
-    <string name="msg_cell">Cell :</string>    
-    <string name="msg_cell_not_gsm">Not a GSM cell</string>    
-    <string name="msg_cell_location">Cell location :</string>    
+    <string name="msg_cell">Cell :</string>
+    <string name="msg_cell_not_gsm">Not a GSM cell</string>
+    <string name="msg_cell_location">Cell location :</string>
+    <string name="msg_device_location">My location :</string>
+    <string name="msg_data">Data :</string>
+    <string name="msg_data_disconnected">Disconnected</string>
+    <string name="msg_data_connecting">Connecting</string>
+    <string name="msg_data_connected">Connected</string>
+    <string name="msg_data_suspended">Suspended</string>
+    <string name="title_section3">Section 3</string>
+    <string name="title_section2">Section 2</string>
+    <string name="title_section1">Section 1</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="title_activity_sqt_main2">SqtMain2Activity</string>
 
-    <string name="msg_device_location">My location :</string>    
-    
-    <string name="msg_data">Data :</string>    
-    <string name="msg_data_disconnected">Disconnected</string>    
-    <string name="msg_data_connecting">Connecting</string>    
-    <string name="msg_data_connected">Connected</string>    
-    <string name="msg_data_suspended">Suspended</string>    
-    
 </resources>
