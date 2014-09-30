@@ -329,8 +329,12 @@ public class SqtMainActivity extends Activity {
 
         String operator = serviceState.getOperatorAlphaShort();
         String operatorNum = serviceState.getOperatorNumeric();
-        String mcc = operatorNum.substring(0, 3);
-        String mnc = operatorNum.substring(3);
+        String mcc = null;
+        String mnc = null;
+        if (null != operatorNum) {
+            mcc = operatorNum.substring(0, 3);
+            mnc = operatorNum.substring(3);
+        }
 
         switch (serviceState.getState()) {
             case ServiceState.STATE_EMERGENCY_ONLY:
