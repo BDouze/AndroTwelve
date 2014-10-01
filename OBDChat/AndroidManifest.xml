@@ -45,7 +45,7 @@
             android:label="@string/select_device"
             android:theme="@android:style/Theme.Holo.Dialog" />
         <activity
-            android:name=".SelectObdCommandActivity"
+            android:name="org.bdouze.android.obd.SelectObdCommandActivity"
             android:label="@string/title_activity_select_at_command" >
         </activity>
     </application>

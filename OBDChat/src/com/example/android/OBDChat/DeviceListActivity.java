@@ -1,7 +1,7 @@
-/*
+/**
  * Based on the Bluetoothchat sample application
- * Copyright (C) 2009 The Android Open Source Project
- * Derivative work Copyright (C) 2014 Fabrice Bellamy
+ * Original work Copyright (C) 2009 The Android Open Source Project
+ * Derivative work Copyright (C) 2014 Fabrice Bellamy (b dot douze at gmail dot com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

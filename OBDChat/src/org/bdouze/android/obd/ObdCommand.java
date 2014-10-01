@@ -1,5 +1,17 @@
 /**
- * 
+ * Copyright (C) 2014 Fabrice Bellamy (b dot douze at gmail dot com)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.bdouze.android.obd;
 
@@ -77,6 +89,31 @@ public final class ObdCommand implements Serializable {
     @Override
     public String toString() {
         return name;
+    }
+    
+    public String cleanupResponse(final String response) {
+        String cleanResponse = response;
+        
+        String header = getResponseHeader();
+        if (null != cleanResponse 
+                && cleanResponse.length() > 0 
+                && cleanResponse.startsWith(">")) {
+            cleanResponse = cleanResponse.substring(1);
+        }
+        if (null != header && header.length() > 0 
+                && null != cleanResponse 
+                && cleanResponse.length() > 0 
+                && cleanResponse.startsWith(header)) {
+            cleanResponse = cleanResponse.substring(header.length());
+        }
+        if (null != cleanResponse 
+                && cleanResponse.length() > 0 
+                && cleanResponse.endsWith(">")) {
+            cleanResponse = cleanResponse.substring(0, cleanResponse.length() -1);
+        }
+        cleanResponse = cleanResponse.trim();
+
+        return cleanResponse;
     }
     
     

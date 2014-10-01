@@ -1,7 +1,7 @@
-/*
+/**
  * Based on the Bluetoothchat sample application
- * Copyright (C) 2009 The Android Open Source Project
- * Derivative work Copyright (C) 2014 Fabrice Bellamy
+ * Original Copyright (C) 2009 The Android Open Source Project
+ * Derivative work Copyright (C) 2014 Fabrice Bellamy (b dot douze at gmail dot com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.bdouze.android.obd.AffineObdResponseConverter;
 import org.bdouze.android.obd.IObdResponseConverter;
 import org.bdouze.android.obd.ObdCommand;
 import org.bdouze.android.obd.ObdCommandDictionary;
+import org.bdouze.android.obd.SelectObdCommandActivity;
 
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
@@ -73,32 +74,32 @@ public class OBDChat extends Activity {
     private static final int REQUEST_OBD_COMMAND = 4;
 
     // Layout Views
-    private ListView mConversationView;
-    private EditText mOutEditText;
-    private Button mSendButton;
-    private Button mSelectAtCommandButton;
-    private Button mSelectMode1CommandButton;
-    private Button mSelectMode2CommandButton;
-    private Button mSelectMode3CommandButton;
-    private Button mSelectMode4CommandButton;
-    private Button mSelectMode5CommandButton;
-    private Button mSelectMode6CommandButton;
-    private Button mSelectMode7CommandButton;
-    private Button mSelectMode8CommandButton;
-    private Button mSelectMode9CommandButton;
-    private Button mSelectModeACommandButton;
-    private Button mQuickInitButton;
+    private ListView conversationView;
+    private EditText outEditText;
+    private Button sendButton;
+    private Button selectAtCommandButton;
+    private Button selectMode1CommandButton;
+    private Button selectMode2CommandButton;
+    private Button selectMode3CommandButton;
+    private Button selectMode4CommandButton;
+    private Button selectMode5CommandButton;
+    private Button selectMode6CommandButton;
+    private Button selectMode7CommandButton;
+    private Button selectMode8CommandButton;
+    private Button selectMode9CommandButton;
+    private Button selectModeACommandButton;
+    private Button quickInitButton;
 
     // Name of the connected device
-    private String mConnectedDeviceName = null;
+    private String connectedDeviceName = null;
     // Array adapter for the conversation thread
-    private ArrayAdapter<String> mConversationArrayAdapter;
+    private ArrayAdapter<String> conversationArrayAdapter;
     // String buffer for outgoing messages
-    private StringBuffer mOutStringBuffer;
+    private StringBuffer outStringBuffer;
     // Local Bluetooth adapter
-    private BluetoothAdapter mBluetoothAdapter = null;
+    private BluetoothAdapter bluetoothAdapter = null;
     // Member object for the chat services
-    private OBDChatService mChatService = null;
+    private OBDChatService chatService = null;
     // Last built-in OBD Command sent
     private ObdCommand lastObdCommandSent = null;
 
@@ -112,10 +113,10 @@ public class OBDChat extends Activity {
         setContentView(R.layout.main);
 
         // Get local Bluetooth adapter
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         // If the adapter is null, then Bluetooth is not supported
-        if (mBluetoothAdapter == null) {
+        if (bluetoothAdapter == null) {
             Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
             finish();
             return;
@@ -129,12 +130,12 @@ public class OBDChat extends Activity {
 
         // If BT is not on, request that it be enabled.
         // setupChat() will then be called during onActivityResult
-        if (!mBluetoothAdapter.isEnabled()) {
+        if (!bluetoothAdapter.isEnabled()) {
             Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
         // Otherwise, setup the chat session
         } else {
-            if (mChatService == null) setupChat();
+            if (chatService == null) setupChat();
         }
     }
 
@@ -146,11 +147,11 @@ public class OBDChat extends Activity {
         // Performing this check in onResume() covers the case in which BT was
         // not enabled during onStart(), so we were paused to enable it...
         // onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
-        if (mChatService != null) {
+        if (chatService != null) {
             // Only if the state is STATE_NONE, do we know that we haven't started already
-            if (mChatService.getState() == OBDChatService.STATE_NONE) {
+            if (chatService.getState() == OBDChatService.STATE_NONE) {
               // Start the Bluetooth chat services
-              mChatService.start();
+              chatService.start();
             }
         }
     }
@@ -159,17 +160,17 @@ public class OBDChat extends Activity {
         Log.d(TAG, "setupChat()");
 
         // Initialize the array adapter for the conversation thread
-        mConversationArrayAdapter = new ArrayAdapter<String>(this, R.layout.message);
-        mConversationView = (ListView) findViewById(R.id.in);
-        mConversationView.setAdapter(mConversationArrayAdapter);
+        conversationArrayAdapter = new ArrayAdapter<String>(this, R.layout.message);
+        conversationView = (ListView) findViewById(R.id.in);
+        conversationView.setAdapter(conversationArrayAdapter);
 
         // Initialize the compose field with a listener for the return key
-        mOutEditText = (EditText) findViewById(R.id.edit_text_out);
-        mOutEditText.setOnEditorActionListener(mWriteListener);
+        outEditText = (EditText) findViewById(R.id.edit_text_out);
+        outEditText.setOnEditorActionListener(mWriteListener);
 
         // Initialize the send button with a listener that for click events
-        mSendButton = (Button) findViewById(R.id.button_send);
-        mSendButton.setOnClickListener(new OnClickListener() {
+        sendButton = (Button) findViewById(R.id.button_send);
+        sendButton.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
                 // Send a message using content of the edit text widget
                 TextView view = (TextView) findViewById(R.id.edit_text_out);
@@ -178,8 +179,8 @@ public class OBDChat extends Activity {
             }
         });
         
-        mQuickInitButton = (Button) findViewById(R.id.button_select_quick_init);
-        mQuickInitButton.setOnClickListener(new OnClickListener() {
+        quickInitButton = (Button) findViewById(R.id.button_select_quick_init);
+        quickInitButton.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
                 String s = "11 2E";
                 IObdResponseConverter conv = new AffineObdResponseConverter(100.0/255.0, 0);
@@ -193,8 +194,8 @@ public class OBDChat extends Activity {
             }
         });
 
-        mSelectAtCommandButton = (Button) findViewById(R.id.button_select_at_command);
-        mSelectAtCommandButton.setOnClickListener(new OnClickListener() {
+        selectAtCommandButton = (Button) findViewById(R.id.button_select_at_command);
+        selectAtCommandButton.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
                 Intent serverIntent = new Intent(OBDChat.this , SelectObdCommandActivity.class);
                 serverIntent.putExtra(SelectObdCommandActivity.EXTRA_OBD_COMMAND_TYPE, ObdCommandDictionary.OBD_COMMAND_TYPE_AT);
@@ -202,8 +203,8 @@ public class OBDChat extends Activity {
             }
         });
         
-        mSelectMode1CommandButton = (Button) findViewById(R.id.button_select_mode_1_command);
-        mSelectMode1CommandButton.setOnClickListener(new OnClickListener() {
+        selectMode1CommandButton = (Button) findViewById(R.id.button_select_mode_1_command);
+        selectMode1CommandButton.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
                 Intent serverIntent = new Intent(OBDChat.this , SelectObdCommandActivity.class);
                 serverIntent.putExtra(SelectObdCommandActivity.EXTRA_OBD_COMMAND_TYPE, ObdCommandDictionary.OBD_COMMAND_TYPE_MODE_1);
@@ -212,10 +213,10 @@ public class OBDChat extends Activity {
         });
         
         // Initialize the OBDChatService to perform bluetooth connections
-        mChatService = new OBDChatService(this, mHandler);
+        chatService = new OBDChatService(this, mHandler);
 
         // Initialize the buffer for outgoing messages
-        mOutStringBuffer = new StringBuffer("");
+        outStringBuffer = new StringBuffer("");
     }
 
     @Override
@@ -234,13 +235,13 @@ public class OBDChat extends Activity {
     public void onDestroy() {
         super.onDestroy();
         // Stop the Bluetooth chat services
-        if (mChatService != null) mChatService.stop();
+        if (chatService != null) chatService.stop();
         if(D) Log.e(TAG, "--- ON DESTROY ---");
     }
 
     private void ensureDiscoverable() {
         if(D) Log.d(TAG, "ensure discoverable");
-        if (mBluetoothAdapter.getScanMode() !=
+        if (bluetoothAdapter.getScanMode() !=
             BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
             Intent discoverableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
             discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
@@ -257,7 +258,7 @@ public class OBDChat extends Activity {
         if(D) Log.d(TAG, "going to send " + message.length() + " chars");
         
         // Check that we're actually connected before trying anything
-        if (mChatService.getState() != OBDChatService.STATE_CONNECTED) {
+        if (chatService.getState() != OBDChatService.STATE_CONNECTED) {
             Toast.makeText(this, R.string.not_connected, Toast.LENGTH_SHORT).show();
             return;
         }
@@ -266,11 +267,11 @@ public class OBDChat extends Activity {
         if (message.length() > 0) {
             // Get the message bytes and tell the OBDChatService to write
             byte[] send = message.getBytes();
-            mChatService.write(send);
+            chatService.write(send);
 
             // Reset out string buffer to zero and clear the edit text field
-            mOutStringBuffer.setLength(0);
-            mOutEditText.setText(mOutStringBuffer);
+            outStringBuffer.setLength(0);
+            //outEditText.setText(outStringBuffer);
         }
     }
 
@@ -308,8 +309,8 @@ public class OBDChat extends Activity {
                 if(D) Log.i(TAG, "MESSAGE_STATE_CHANGE: " + msg.arg1);
                 switch (msg.arg1) {
                 case OBDChatService.STATE_CONNECTED:
-                    setStatus(getString(R.string.title_connected_to, mConnectedDeviceName));
-                    mConversationArrayAdapter.clear();
+                    setStatus(getString(R.string.title_connected_to, connectedDeviceName));
+                    conversationArrayAdapter.clear();
                     break;
                 case OBDChatService.STATE_CONNECTING:
                     setStatus(R.string.title_connecting);
@@ -324,58 +325,19 @@ public class OBDChat extends Activity {
                 byte[] writeBuf = (byte[]) msg.obj;
                 // construct a string from the buffer
                 String writeMessage = new String(writeBuf);
-                mConversationArrayAdapter.add("Me:  " + writeMessage);
+                conversationArrayAdapter.add("Me:  " + writeMessage);
                 break;
             case MESSAGE_READ:
                 byte[] readBuf = (byte[]) msg.obj;
                 // construct a string from the valid bytes in the buffer
                 String readMessage = new String(readBuf, 0, msg.arg1);
-                if (null != lastObdCommandSent && lastObdCommandSent.getConverter().isNumericalsupported()) {
-                    String header = lastObdCommandSent.getResponseHeader();
-                    if (null != readMessage 
-                            && readMessage.length() > 0 
-                            && readMessage.startsWith(">")) {
-                        readMessage = readMessage.substring(1);
-                    }
-                    if (null != header && header.length() > 0 
-                            && null != readMessage 
-                            && readMessage.length() > 0 
-                            && readMessage.startsWith(header)) {
-                        readMessage = readMessage.substring(header.length());
-                    }
-                    if (null != readMessage 
-                            && readMessage.length() > 0 
-                            && readMessage.endsWith(">")) {
-                        readMessage = readMessage.substring(0, readMessage.length() -1);
-                    }
-                    readMessage = readMessage.trim();
-                    if (null != readMessage 
-                            && readMessage.length() > 0) {
-                        String convertedResponse = lastObdCommandSent.getConverter().convertToString(readMessage);
-                        if (convertedResponse.equals("NaN")) {
-                            try {
-                                long x = Long.parseLong(readMessage, 16);
-                                convertedResponse = "Raw convert: " + Long.toString(x);
-                            } catch (NumberFormatException e) {
-                                convertedResponse = e.getMessage();
-                            }                            
-                        }
-                        mConversationArrayAdapter.add("OBD: '" + readMessage + "' = " 
-                                + convertedResponse + " " 
-                                + lastObdCommandSent.getUnit());
-                    } else {
-                        mConversationArrayAdapter.add("OBD: ");
-                    }
-                    lastObdCommandSent = null;
-                } else {
-                    mConversationArrayAdapter.add("OBD: " + readMessage);
-                }
+                handleResponse(readMessage);
                 break;
             case MESSAGE_DEVICE_NAME:
                 // save the connected device's name
-                mConnectedDeviceName = msg.getData().getString(DEVICE_NAME);
+                connectedDeviceName = msg.getData().getString(DEVICE_NAME);
                 Toast.makeText(getApplicationContext(), "Connected to "
-                               + mConnectedDeviceName, Toast.LENGTH_SHORT).show();
+                               + connectedDeviceName, Toast.LENGTH_SHORT).show();
                 break;
             case MESSAGE_TOAST:
                 Toast.makeText(getApplicationContext(), msg.getData().getString(TOAST),
@@ -384,6 +346,52 @@ public class OBDChat extends Activity {
             }
         }
     };
+
+    private void handleResponse(String readMessage) {
+        if (null != lastObdCommandSent) {
+            // Built-in command was sent
+            String cleanResponse = lastObdCommandSent.cleanupResponse(readMessage);
+            if (lastObdCommandSent.getConverter().isNumericalsupported()) {
+                // Convert response value to numerical and check error cases
+                if (null != cleanResponse 
+                        && cleanResponse.length() > 0) {
+                    String convertedResponse = lastObdCommandSent.getConverter().convertToString(cleanResponse);
+                    if (convertedResponse.equals("NaN")) {
+                        // Error case, converter failed to convert to a number
+                        try {
+                            long x = Long.parseLong(readMessage, 16);
+                            convertedResponse = " NaN (Raw convert: " + Long.toString(x) + ")";
+                        } catch (NumberFormatException e) {
+                            convertedResponse = " NaN (Exception: " + e.getMessage() + ")";
+                        }                            
+                        conversationArrayAdapter.add("OBD: '" 
+                                + readMessage 
+                                + "' = " 
+                                + convertedResponse);
+                    } else {
+                        // Normal case
+                        conversationArrayAdapter.add("OBD: '" 
+                                + readMessage 
+                                + "' = " 
+                                + convertedResponse + " " 
+                                + lastObdCommandSent.getUnit());
+                    }
+                } else {
+                    // Error case, no value in response
+                    conversationArrayAdapter.add("OBD: '" 
+                            + readMessage 
+                            + "' = <Empty response>");
+                }
+            } else {
+                // Non numerical value. Display without conversion
+                conversationArrayAdapter.add("OBD: " + cleanResponse);
+            }
+            lastObdCommandSent = null;
+        } else {
+            // Custom command was sent. Display raw response message
+            conversationArrayAdapter.add("OBD: " + readMessage);
+        }
+    }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(D) Log.d(TAG, "onActivityResult " + resultCode);
@@ -413,12 +421,15 @@ public class OBDChat extends Activity {
             }
             break;
         case REQUEST_OBD_COMMAND:
+            // When SelectObdCommandActivity returns with an OBD command to send
             if (resultCode == Activity.RESULT_OK) {
                 lastObdCommandSent = (ObdCommand)data.getExtras().getSerializable(SelectObdCommandActivity.EXTRA_OBD_COMMAND);
                 
                 EditText view = (EditText) findViewById(R.id.edit_text_out);
-                view.setText(lastObdCommandSent.getCommand());
-                view.setSelection(view.getText().length());                
+                String command = lastObdCommandSent.getCommand();
+                view.setText(command);
+                view.setSelection(view.getText().length());
+                sendMessage(command);
             }
         }
     }
@@ -428,9 +439,9 @@ public class OBDChat extends Activity {
         String address = data.getExtras()
             .getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
         // Get the BluetoothDevice object
-        BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+        BluetoothDevice device = bluetoothAdapter.getRemoteDevice(address);
         // Attempt to connect to the device
-        mChatService.connect(device, secure);
+        chatService.connect(device, secure);
     }
 
     @Override

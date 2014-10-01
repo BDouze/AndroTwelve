@@ -1,7 +1,7 @@
-/*
+/**
  * Based on the Bluetoothchat sample application
- * Copyright (C) 2009 The Android Open Source Project
- * Derivative work Copyright (C) 2014 Fabrice Bellamy
+ * Original work Copyright (C) 2009 The Android Open Source Project
+ * Derivative work Copyright (C) 2014 Fabrice Bellamy (b dot douze at gmail dot com)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -459,9 +459,18 @@ public class OBDChatService {
             // Keep listening to the InputStream while connected
             while (true) {
                 try {
-                    // Read from the InputStream
-                    bytes = mmInStream.read(buffer);
-
+                    bytes = 0;
+                    int lastByte = 0;
+                    
+                    // Read from the InputStream until a '>' is received
+                    while ('>' != (byte)lastByte && 0 <= lastByte) {
+                        lastByte = mmInStream.read();
+                        if (0<= lastByte) {
+                            buffer[bytes] = (byte)lastByte; 
+                            bytes++;
+                        }
+                    }
+                        
                     // Send the obtained bytes to the UI Activity
                     mHandler.obtainMessage(OBDChat.MESSAGE_READ, bytes, -1, buffer)
                             .sendToTarget();
