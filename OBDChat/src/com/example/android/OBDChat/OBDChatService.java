@@ -32,6 +32,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.widget.Toast;
 
 /**
  * This class does all the work for setting up and managing Bluetooth
@@ -107,6 +108,7 @@ public class OBDChatService {
      * session in listening (server) mode. Called by the Activity onResume() */
     public synchronized void start() {
         if (D) Log.d(TAG, "start");
+        setState(STATE_NONE);
 
         // Cancel any thread attempting to make a connection
         if (mConnectThread != null) {mConnectThread.cancel(); mConnectThread = null;}
@@ -195,6 +197,7 @@ public class OBDChatService {
      */
     public synchronized void stop() {
         if (D) Log.d(TAG, "stop");
+        setState(STATE_NONE);
 
         if (mConnectThread != null) {
             mConnectThread.cancel();
@@ -215,7 +218,6 @@ public class OBDChatService {
             mInsecureAcceptThread.cancel();
             mInsecureAcceptThread = null;
         }
-        setState(STATE_NONE);
     }
 
     /**
@@ -229,7 +231,17 @@ public class OBDChatService {
         // Synchronize a copy of the ConnectedThread
         synchronized (this) {
             if (mState != STATE_CONNECTED) return;
-            r = mConnectedThread;
+            if (null != mConnectedThread) {
+                r = mConnectedThread;
+            } else {
+                //ToDo: implement auto re-connect when connection lost
+                Message msg = mHandler.obtainMessage(OBDChat.MESSAGE_TOAST);
+                Bundle bundle = new Bundle();
+                bundle.putString(OBDChat.TOAST, "Allô, non mais allô quoi. T'es en STATE_CONNECTED mais t'as pas de mConnectedThread. Allô... Allô...");
+                msg.setData(bundle);
+                mHandler.sendMessage(msg);
+                return;
+            }
         }
         // Perform the write unsynchronized
         r.write(out);
@@ -491,6 +503,7 @@ public class OBDChatService {
         public void write(byte[] buffer) {
             try {
                 mmOutStream.write(buffer);
+                mmOutStream.flush();
 
                 // Share the sent message back to the UI Activity
                 mHandler.obtainMessage(OBDChat.MESSAGE_WRITE, -1, -1, buffer)

@@ -175,6 +175,9 @@ public class OBDChat extends Activity {
                 // Send a message using content of the edit text widget
                 TextView view = (TextView) findViewById(R.id.edit_text_out);
                 String message = view.getText().toString();
+                if (null == lastObdCommandSent) {
+                    lastObdCommandSent = ObdCommandDictionary.getObdCommandMap().get(message);
+                }
                 sendMessage(message);
             }
         });
@@ -259,7 +262,7 @@ public class OBDChat extends Activity {
         
         // Check that we're actually connected before trying anything
         if (chatService.getState() != OBDChatService.STATE_CONNECTED) {
-            Toast.makeText(this, R.string.not_connected, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.not_connected, Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -341,7 +344,7 @@ public class OBDChat extends Activity {
                 break;
             case MESSAGE_TOAST:
                 Toast.makeText(getApplicationContext(), msg.getData().getString(TOAST),
-                               Toast.LENGTH_SHORT).show();
+                               Toast.LENGTH_LONG).show();
                 break;
             }
         }
